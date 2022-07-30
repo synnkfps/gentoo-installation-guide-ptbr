@@ -2,7 +2,6 @@ Gentoo
 ---
 
 ### mídia de boot
-you can ssh into the boot medium for ~~copy and pasting~~ ease of use
 você pode usar o ssh (secure shell) na mídia de boot para mais facilidade de ~~copiar e colar~~
 ```
 ifconfig
