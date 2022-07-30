@@ -1,17 +1,18 @@
 Gentoo
 ---
 
-### boot medium
+### mídia de boot
 you can ssh into the boot medium for ~~copy and pasting~~ ease of use
+você pode usar o ssh (secure shell) na mídia de boot para mais facilidade de ~~copiar e colar~~
 ```
 ifconfig
 rc-service sshd start
 ```
 
-### disk config
+### configuração dos discos
 ```
-lsblk # change /dev/sda to whatever you want to use
-parted -a optimal /dev/sda  # creating the partitions
+lsblk # mude /dev/sda para qualquer coisa que queira usar
+parted -a optimal /dev/sda  # criando as partições
 >----->
 >mklabel gpt
 >print  # rm 2
@@ -25,7 +26,7 @@ parted -a optimal /dev/sda  # creating the partitions
 >name 2 boot
 >set 2 boot on
 
->mkpart primary 153 653  # this sets 500mb of swap
+>mkpart primary 153 653  # isso seta 500mb de swap
 >name 3 swap
 
 >mkpart primary 653 -1
@@ -35,7 +36,7 @@ parted -a optimal /dev/sda  # creating the partitions
 >quit
 >-----<
 
-# formatting the partitions
+# formatando as partições
 mkfs.vfat /dev/sda1
 mkfs.vfat /dev/sda2
 mkswap /dev/sda3
@@ -46,48 +47,47 @@ mount /dev/sda4 /mnt/gentoo
 cd /mnt/gentoo
 ```
 
-
-### download stage3
+### baixando o stage3
 ```
-links gentoo.mirrors.tera-byte.com/releases/amd64/autobuilds  # significant point of failure
+links gentoo.mirrors.tera-byte.com/releases/amd64/autobuilds  # ponto significante de falha
 >----->
 >[most recent YYYYMMDD]
->stage3-*.tar.xz  # not systemd or nomultilib
+>stage3-*.tar.xz  # sem ser systemd ou nomultilib
 >[save]
 >[ok]
 >q
 >[Yes]
 >-----<
 
-tar xpvf stage3* --xattrs-include=`*.*` --numeric-owner  # unpack tarball
+tar xpvf stage3* --xattrs-include=`*.*` --numeric-owner  # extrair o tarball
 ```
 
-### preparing emerge
+### preparando o emerge
 ```
 vi /mnt/gentoo/etc/portage/make.conf
 >----->
 CHOST="x86_64-pc-linux-gnu"
 COMMON_FLAGS="-02 -pipe -march=native"
 
-MAKEOPTS="-j12"  # 2gb of ram is required per thread. list the number of threads that fit within this requirement
-#PORTAGE_NICENESS=1  # add this once finished the install as it prioritizes tasks
+MAKEOPTS="-j12"  # 2gb de ram é necessário por thread. coloque o numero de threads que se encaixe nesse requerimento
+#PORTAGE_NICENESS=1  # adicione isso quando terminar a instalaçao, isso prioritiza tarefas
 ACCEPT_LICENSE="*"
 
-USE="X nvidia"  # for nvidia users
+USE="X nvidia"  # para usuários nvidia
 GRUB_PLATFORMS="efi-64"
-VIDEO_CARDS="nvidia"  # for nvidia users
+VIDEO_CARDS="nvidia"  # para usuários nvidia
 >-----<
-# press space to select servers in your region. press enter to save and exit.
-mirrorselect -io >> /mnt/gentoo/etc/portage/make.conf  # significant point of failure
+# aperte espaço para selecionar servidores da sua região. aperte enter para salvar e sair.
+mirrorselect -io >> /mnt/gentoo/etc/portage/make.conf  # ponto significante de falha
 mkdir /mnt/gentoo/etc/portage/repos.conf
 cp /mnt/gentoo/usr/share/portage/config/repos.conf /mnt/gentoo/etc/portage/repos.conf/gentoo.conf
 
 cp -L /etc/resolv.conf /mnt/gentoo/etc/  # -L is --dereference
 ```
 
-### mounting env
+### montando o ambiente
 ```
-# significant point of failure
+# ponto significante de falha
 mount --types proc /proc /mnt/gentoo/proc
 mount --rbind /sys /mnt/gentoo/sys
 mount --rbind /run /mnt/gentoo/run
@@ -103,21 +103,21 @@ export PS1="(chroot) ${PS1}"
 mount /dev/sda2 /boot
 ```
 
-### emerging
-i have listed the emerge times for my r5 2600
+### emergindo (dando emerge)
+eu (wncry) listei os tempos de emerge do meu r5 2600 (ryzen 5 2600)
 ```
 emerge-webrsync  # 30s
 emerge --sync  # 1m
 
-eselect news read  # man news.eselect
+eselect news read  # man news.eselect (para ler o manual)
 
 eselect profile list
-eselect profile set 1  # if you plan on installing GNOME or KDE/Plasma, select their respective /desktop/ profiles
+eselect profile set 1  # se você planeja instalar o GNOME ou o KDE/Plasma, selecione seus respectivos perfis que incluem /desktop/ (não use systemd)
 
-emerge -aqDNu @world  # 7m - 90m depending on selected profile
+emerge -aqDNu @world  # 7m - 90m dependendo do perfil selecionado
 ```
 
-### misc config
+### configurações adicionais
 ```
 ls /usr/share/zoneinfo
 echo "America/undisclosed_canadian_city_eh" > /etc/timezone
@@ -133,27 +133,27 @@ source /etc/profile
 export PS1="(chroot) ${PS1}"
 ```
 
-### general config
+### configurações gerais
 ```
-emerge -aq gentoo-sources pciutils genkernel linux-firmware netifrc sysklogd vim  # install required packages
+emerge -aq gentoo-sources pciutils genkernel linux-firmware netifrc sysklogd vim  # instalar packages necessárias
 ls -l /usr/src/linux*
 mv /usr/src/linux* /usr/src/linux
 
 vim /etc/fstab
->----->  # please use tabs here bc they look so pretty :3
-/dev/sda2	/boot	vfat	defaults	0 2
-/dev/sda3	none	swap	sw		0 0
-/dev/sda4	/	ext4	noatime 	0 1
+>----->  # (wncry: por favor use tab pq fica muito bonito :3)
+/dev/sda2	/boot	vfat	   defaults	   0 2
+/dev/sda3	none	swap	   sw		      0 0
+/dev/sda4	/	   ext4	   noatime 	   0 1
 >-----<
 
-genkernel all  # 30m
+genkernel all  # 30m (minutos)
 
 ls /boot/vmlinu* /boot/initramfs*
 
 # blkid
 # vim /etc/fstab
 # >----->
-# # in case of multiple drives, add UUID of previous sda2 here
+# # em caso de multiplos discos, coloque o UUID do sda2 anterior aqui
 # >-----<
 
 vim /etc/conf.d/hostname  # user@gentoo:$
@@ -161,33 +161,33 @@ vim /etc/conf.d/hostname  # user@gentoo:$
 hostname="gentoo"
 >-----<
 
-# the command `ip a` at this stage is untested
-ip a  # enp4s0 is my network interface device name
+# o comando `ip a` nesse estágio não foi testado
+ip a # enp4s0 é o nome do meu (wncry) dispositivo de internet (pode variar!)
 
 vim /etc/conf.d/net
 >----->
-config_enp4s0="dhcp"  # use your network interface device name here
+config_enp4s0="dhcp"  # coloque o nome do seu dispositivo de internet no lugar do enp4s0 (caso for diferente)
 >-----<
 
 cd /etc/init.d
-ln -s net.lo net.enp4s0  # use your network interface device name here
-rc-update add net.enp4s0 default  # use your network interface device name here
+ln -s net.lo net.enp4s0  # coloque o nome do seu dispositivo de internet aqui
+rc-update add net.enp4s0 default  # coloque o nome do seu dispositivo de internet aqui
 
 vim /etc/hosts
->----->  # again, please use tabs :3
+>----->  # (wncry: denovo, use tabs :3)
 127.0.0.1	gentoo localhost
 >-----<
 
 vim /etc/security/passwdqc.conf
 >----->
-min=1,1,1,1,1  # this is so that you can skimp on security :D
+min=1,1,1,1,1  # isso é para você ter mais segurança :D
 >-----<
 passwd
 
 date
 vim /etc/conf.d/hwclock
 >----->
-EST  # your timezone here
+EST  # seu fuso horário (brasil: gmt)
 >-----<
 
 rc-update add sysklogd default
@@ -196,8 +196,7 @@ rc-update add sysklogd default
 ### boot loader
 ```
 emerge -aq e2fsprogs dosfstools dhcpcd grub:2
-
-# if you are installing to a removable drive, uncomment --removable. otherwise, exclude.
+# exclua "--removable" CASO você NÃO esteja instalando em um dispositivo removível
 grub-install --target=x86_64-efi --efi-directory=/boot  #--removable
 grub-mkconfig -o /boot/grub/grub.cfg
 
@@ -209,7 +208,7 @@ umount -R /mnt/gentoo
 reboot
 ```
 
-### users and cleanup
+### adicionando usuários e limpando
 ```
 cd /
 useradd -G users,wheel,video -m wncry
@@ -233,7 +232,7 @@ PermitRootLogin yes
 ```
 
 ### nvidia drivers
-this is where the *fun* begins
+onde a *diversão* começa...
 ```
 emerge -aq nvidia-drivers xorg-server
 
@@ -257,24 +256,24 @@ EndSection
 >-----<
 
 emerge @module-rebuild
-lsmod | grep nvidia  # may require reboot
+lsmod | grep nvidia  # talvez precise reiniciar
 rmmod nvidia_drm
 rmmod nvidia_modeset
 rmmod nvidia
 modprobe nvidia
 modprobe nvidia_modeset
 modprobe nvidia_drm
-emerge -aqDNu @world  # rebuilds packages that benefit from USE flags
-etc-update  # update packages
+emerge -aqDNu @world  # reconstrói pacotes que se beneficiam das USE flags
+etc-update  # atualiza pacotes
 
-emerge -aq mesa-progs  # testing
+emerge -aq mesa-progs  # testando
 glxinfo | grep direct
 ```
 
 ### display manager
-#### ***!! this section is still under refinement !!***
-https://github.com/fairyglade/ly  # og
-https://github.com/Cavernosa/ly  # systemctl fork
+#### ***!! esta sessão ainda está sobre refinamentos !!***
+https://github.com/fairyglade/ly  # antigo
+https://github.com/Cavernosa/ly  # fork do systemctl
 ```
 git clone --recurse-submodules https://github.com/cavernosa/ly  # https://github.com/fairyglade/ly
 cd ly
@@ -284,8 +283,8 @@ rc-update add ly default
 rc-service ly start
 ```
 
-### desktop environment + windows manager
-#### gnome (untested)
+### desktop environment + windows manager (ambiente de trabalho + gerenciador de janelas)
+#### gnome (não testado)
 https://wiki.gentoo.org/wiki/GNOME/Guide
 ```
 eselect profile set default/linux/amd64/17.1/desktop/gnome
@@ -296,7 +295,7 @@ env-update && source /etc/profile
 rc-update add elogind boot
 rc-service elogind start 
 
-# for the gnome display manager (gdm):
+# para o display manager do gnome (gdm):
 emerge -aqn gui-libs/display-manager-init
 vim /etc/conf.d/display-manager
 >----->
@@ -309,7 +308,7 @@ systemctl enable gdm
 systemctl start gdm
 ```
 
-#### KDE/Plasma (untested)
+#### KDE/Plasma (não testado)
 https://wiki.gentoo.org/wiki/KDE
 https://wiki.gentoo.org/wiki/SDDM
 ```
@@ -322,7 +321,7 @@ vim ~/.xinitrc
 exec dbus-launch --exit-with-session startplasma-x11
 >-----<
 
-# for the simple desktop display manager
+# para o "simple desktop display manager" (o plasma precisa dele)
 emerge -aq sddm
 usermod -a -G video sddm
 
@@ -353,7 +352,7 @@ rc-update add display-manager default
 rc-service display-manager start
 ```
 
-#### ratpoison
+#### para o ratpoison
 https://wiki.gentoo.org/wiki/Ratpoison
 ```
 emerge -aq ratpoison alacritty ranger htop dev-vcs/git feh display-manager-init
@@ -365,19 +364,19 @@ exec feh --bg-scale ~/.wallpaper.png  # sets a wallpaper
 exec /usr/bin/rpws init 4 -k  # opens four environments
 exec ratpoison -c "banish"  # moves mouse to the bottom left corner
 
-set border 3  # window padding
+set border 3  # posicionamento de telas
 
-# application execution
-bind a exec alacritty  # executed by 'ctrl+t a'
+# execução de aplicativos
+bind a exec alacritty  # executa com 'ctrl+t a'
 bind l exec librewolf
 
-# window management
+# gerenciamento de janelas
 bind M-R remove
-bind R resize  # executed by 'ctrl+t shift+r'
+bind R resize  # executa com 'ctrl+t shift+r'
 bind V vsplit
 bind H hsplit
 
-# environments
+# ambientes
 bind 1 exec rpws 1  # executed by 'ctrl+t 1'
 bind 2 exec rpws 2
 bind 3 exec rpws 3
@@ -401,5 +400,8 @@ emaint -r librewolf sync
 emerge -aq librewolf  # beard time - 65m
 ```
 
-# YOU JUST INSTALLED GENTOO :D
+# VOCÊ ACABOU DE INSTALAR GENTOO :D
 you can now tell others to 'install gentoo'
+agora você pode dizer para outros 'instalarem gentoo'
+
+traduzido por SynnK (nativo pt-BR)
