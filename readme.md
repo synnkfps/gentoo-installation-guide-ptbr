@@ -48,7 +48,7 @@ cd /mnt/gentoo
 
 ### baixando o stage3
 ```
-https://gentoo.osuosl.org/releases/amd64/autobuilds/  # ponto significante de falha
+links https://gentoo.osuosl.org/releases/amd64/autobuilds/  # ponto significante de falha
 >----->
 >[most recent YYYYMMDD]
 >stage3-*.tar.xz  # sem ser systemd ou nomultilib
