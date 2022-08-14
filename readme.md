@@ -403,4 +403,4 @@ emerge -aq librewolf  # beard time - 65m
 you can now tell others to 'install gentoo'
 agora você pode dizer para outros 'instalarem gentoo'
 
-traduzido por SynnK (nativo pt-BR)
+traduzido por SynnK (aprendendo pt_BR)
